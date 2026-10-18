@@ -1,6 +1,6 @@
 import { sb, LANDING_ID } from './_supabase.js';
 
-const PIXEL_ID = '1151311860561211';
+const PIXEL_ID = '4257534047871179';
 
 // Si Supabase no responde, el boton igual funciona con esta lista (eleccion al azar).
 const FALLBACK_NUMEROS = [
