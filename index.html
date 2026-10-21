@@ -570,9 +570,25 @@ function getTtclid(){
 // La eleccion del numero + armado del wa.me + el evento server-side lo hace el
 // server (/wa, mismo origen): asi lee la cookie _ttp directo y captura IP/UA reales.
 // Aca solo disparamos el Contact del browser y navegamos con el eid + ttclid.
+// ViewContent al cargar: Pixel del navegador + copia server-side (/api/vista) con el mismo event_id.
+(function(){
+  const eid=genEid();
+  if(window.ttq)ttq.track('ViewContent',{content_name:'Landing Red Green'},{event_id:eid});
+  let qs='eid='+encodeURIComponent(eid);
+  const ttclid=getTtclid();
+  if(ttclid)qs+='&ttclid='+encodeURIComponent(ttclid);
+  try{
+    if(!(navigator.sendBeacon&&navigator.sendBeacon('/api/vista?'+qs)))fetch('/api/vista?'+qs,{method:'POST',keepalive:true});
+  }catch(e){}
+})();
+
+// Clic en WhatsApp: ClickButton (id = eid+'c') + Contact (id = eid). /wa manda los mismos ids server-side.
 function openWA(){
   const eid=genEid();
-  if(window.ttq)ttq.track('Contact',{content_name:'WhatsApp Click'},{event_id:eid});
+  if(window.ttq){
+    ttq.track('ClickButton',{content_name:'WhatsApp Click'},{event_id:eid+'c'});
+    ttq.track('Contact',{content_name:'WhatsApp Click'},{event_id:eid});
+  }
   let qs='eid='+encodeURIComponent(eid);
   const ttclid=getTtclid();
   if(ttclid)qs+='&ttclid='+encodeURIComponent(ttclid);
