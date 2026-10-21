@@ -13,21 +13,19 @@
 <meta name="description" content="Plataformas premium con soporte 24/7, bonificaciones exclusivas y RETIR0S rápidos. Contactanos por WhatsApp."/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-<!-- Facebook Pixel Code -->
+<!-- TikTok Pixel Code Start -->
 <script>
-!function(f,b,e,v,n,t,s)
-{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-n.queue=[];t=b.createElement(e);t.async=!0;
-t.src=v;s=b.getElementsByTagName(e)[0];
-s.parentNode.insertBefore(t,s)}(window,document,'script',
-'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init','4257534047871179');
-fbq('track','PageView');
+!function (w, d, t) {
+  w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(
+var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=document.createElement("script")
+;n.type="text/javascript",n.async=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};
+
+
+  ttq.load('DBCGVU3C77UAPSNVTNQ0');
+  ttq.page();
+}(window, document, 'ttq');
 </script>
-<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=4257534047871179&ev=PageView&noscript=1"/></noscript>
-<!-- End Facebook Pixel Code -->
+<!-- TikTok Pixel Code End -->
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -559,26 +557,25 @@ const WA_MSGS=[
   'Buenas! ¿Cómo hago para reclamar el bono del 50%?'
 ];
 function pickWAMsg(){return encodeURIComponent(WA_MSGS[Math.floor(Math.random()*WA_MSGS.length)]);}
-// eid: id de dedup que generamos en el browser y usamos como eventID del Lead, para que
-// dedupee con el Lead server-side. NO es la clave de Redis: el refCode (esa clave) lo
-// genera el server en /wa (asi el cliente no puede elegirla ni inflar Redis).
+// eid: id de dedup que generamos en el browser y usamos como event_id del Contact, para que
+// TikTok lo dedupee con el Contact server-side (Events API) que manda /wa.
 function genEid(){
   const a=new Uint8Array(8);
   (window.crypto||window.msCrypto).getRandomValues(a);
   return Array.from(a,b=>b.toString(16).padStart(2,'0')).join('');
 }
-function getFbclid(){
-  try{return new URLSearchParams(window.location.search).get('fbclid')||'';}catch(e){return '';}
+function getTtclid(){
+  try{return new URLSearchParams(window.location.search).get('ttclid')||'';}catch(e){return '';}
 }
-// La eleccion del numero + armado del wa.me + guardado del contexto Meta lo hace el
-// server (/wa, mismo origen): asi lee la cookie _fbp directo y captura IP/UA reales.
-// Aca solo disparamos el Lead del browser y navegamos con el eid + fbclid.
+// La eleccion del numero + armado del wa.me + el evento server-side lo hace el
+// server (/wa, mismo origen): asi lee la cookie _ttp directo y captura IP/UA reales.
+// Aca solo disparamos el Contact del browser y navegamos con el eid + ttclid.
 function openWA(){
   const eid=genEid();
-  if(window.fbq)fbq('track','Lead',{content_name:'WhatsApp Click'},{eventID:eid});
+  if(window.ttq)ttq.track('Contact',{content_name:'WhatsApp Click'},{event_id:eid});
   let qs='eid='+encodeURIComponent(eid);
-  const fbclid=getFbclid();
-  if(fbclid)qs+='&fbclid='+encodeURIComponent(fbclid);
+  const ttclid=getTtclid();
+  if(ttclid)qs+='&ttclid='+encodeURIComponent(ttclid);
   window.location.href='/wa?'+qs;
 }
 

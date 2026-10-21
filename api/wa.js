@@ -1,6 +1,6 @@
 import { sb, LANDING_ID } from './_supabase.js';
 
-const PIXEL_ID = '4257534047871179';
+const TIKTOK_PIXEL_ID = 'DBCGVU3C77UAPSNVTNQ0';
 
 // Si Supabase no responde, el boton igual funciona con esta lista (eleccion al azar).
 const FALLBACK_NUMEROS = [
@@ -49,54 +49,55 @@ async function elegirNumero() {
     return pick(FALLBACK_NUMEROS);
 }
 
-// Lead server-side (Conversions API). Usa el mismo eid que el Lead del Pixel para deduplicar.
-async function enviarLead(req, { eid, fbclid }) {
-    const token = process.env.META_CAPI_ACCESS_TOKEN;
+// Contact server-side (TikTok Events API). Usa el mismo eid que el Contact del Pixel para deduplicar.
+// Sin TIKTOK_ACCESS_TOKEN no hace nada (el Pixel del navegador sigue funcionando igual).
+async function enviarContacto(req, { eid, ttclid }) {
+    const token = process.env.TIKTOK_ACCESS_TOKEN;
     if (!token || !eid) return;
 
     const cookies = parseCookies(req.headers.cookie);
     const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim();
-    const userData = {
-        client_ip_address: ip || undefined,
-        client_user_agent: req.headers['user-agent'] || undefined,
-        fbp: cookies._fbp || undefined,
-        fbc: cookies._fbc || (fbclid ? `fb.1.${Date.now()}.${fbclid}` : undefined)
-    };
 
     const payload = {
+        event_source: 'web',
+        event_source_id: TIKTOK_PIXEL_ID,
         data: [{
-            event_name: 'Lead',
+            event: 'Contact',
             event_time: Math.floor(Date.now() / 1000),
             event_id: eid,
-            action_source: 'website',
-            event_source_url: req.headers.referer || `https://${req.headers.host}/`,
-            user_data: userData,
-            custom_data: { content_name: 'WhatsApp Click' }
+            user: {
+                ttclid: ttclid || undefined,
+                ttp: cookies._ttp || undefined,
+                ip: ip || undefined,
+                user_agent: req.headers['user-agent'] || undefined
+            },
+            page: {
+                url: req.headers.referer || `https://${req.headers.host}/`
+            },
+            properties: { content_name: 'WhatsApp Click' }
         }]
     };
-    if (process.env.META_TEST_EVENT_CODE) payload.test_event_code = process.env.META_TEST_EVENT_CODE;
+    if (process.env.TIKTOK_TEST_EVENT_CODE) payload.test_event_code = process.env.TIKTOK_TEST_EVENT_CODE;
 
     try {
-        const res = await fetch(
-            `https://graph.facebook.com/v21.0/${PIXEL_ID}/events?access_token=${token}`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
-                signal: AbortSignal.timeout(1500)
-            }
-        );
-        if (!res.ok) console.error('[wa] CAPI error:', await res.text());
+        const res = await fetch('https://business-api.tiktok.com/open_api/v1.3/event/track/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Access-Token': token },
+            body: JSON.stringify(payload),
+            signal: AbortSignal.timeout(1500)
+        });
+        const out = await res.json().catch(() => null);
+        if (!res.ok || (out && out.code !== 0)) console.error('[wa] TikTok Events API error:', JSON.stringify(out));
     } catch (e) {
-        console.error('[wa] CAPI fallo:', e.message);
+        console.error('[wa] TikTok Events API fallo:', e.message);
     }
 }
 
 export default async function handler(req, res) {
     const eid = /^[a-f0-9]{8,64}$/i.test(req.query.eid || '') ? req.query.eid : '';
-    const fbclid = String(req.query.fbclid || '').slice(0, 500);
+    const ttclid = String(req.query.ttclid || '').slice(0, 500);
 
-    const [numero] = await Promise.all([elegirNumero(), enviarLead(req, { eid, fbclid })]);
+    const [numero] = await Promise.all([elegirNumero(), enviarContacto(req, { eid, ttclid })]);
 
     const url = `https://wa.me/${numero}?text=${encodeURIComponent(pick(WA_MSGS))}`;
     res.setHeader('Cache-Control', 'no-store');
