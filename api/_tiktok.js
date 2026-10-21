@@ -19,7 +19,11 @@ export const eidValido = (v) => (/^[a-f0-9]{8,64}$/i.test(v || '') ? v : '');
 // eventos: [{ event: 'Contact', event_id: '...' }, ...]
 export async function enviarEventosTikTok(req, eventos, { ttclid } = {}) {
     const token = process.env.TIKTOK_ACCESS_TOKEN;
-    if (!token || !eventos.length) return;
+    if (!eventos.length) return;
+    if (!token) {
+        console.warn('[tiktok] falta TIKTOK_ACCESS_TOKEN en Vercel: no se envian eventos server-side');
+        return;
+    }
 
     const cookies = parseCookies(req.headers.cookie);
     const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim();
@@ -55,6 +59,7 @@ export async function enviarEventosTikTok(req, eventos, { ttclid } = {}) {
         });
         const out = await res.json().catch(() => null);
         if (!res.ok || !out || out.code !== 0) console.error('[tiktok] Events API error:', JSON.stringify(out));
+        else console.log('[tiktok] OK', eventos.map((e) => e.event).join('+'));
     } catch (e) {
         console.error('[tiktok] Events API fallo:', e.message);
     }
