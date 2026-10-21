@@ -1,6 +1,6 @@
 import { sb, LANDING_ID } from './_supabase.js';
 
-const TIKTOK_PIXEL_ID = 'DBCGVU3C77UAPSNVTNQ0';
+const TIKTOK_PIXEL_ID = 'DBCH97BC77UEENV8ACI0';
 
 // Si Supabase no responde, el boton igual funciona con esta lista (eleccion al azar).
 const FALLBACK_NUMEROS = [
